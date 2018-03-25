@@ -1,0 +1,134 @@
+---
+title: "ArbresDeDecision"
+author: "gueddou chaouki"
+date: "2017 M04 23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Partie I (rpart) :
+
+
+```{r }
+library(rpart)
+tennis <- read.table("tennum.txt")
+tennis
+ad.tennis <- rpart (Jouer ~ Ciel + Temperature + Humidite + Vent, tennis)
+ad.tennis
+
+#avec 1
+ad.tennis.cnt <- rpart.control (minsplit = 1)
+
+ad.tennis <- rpart (Jouer ~ Ciel + Temperature + Humidite + Vent, tennis, control = ad.tennis.cnt)
+ad.tennis
+
+plot (ad.tennis, branch=.4, uniform=T, compress=T)
+text (ad.tennis, all=T,use.n=T)
+
+#avec 2
+ad.tennis.cnt <- rpart.control (minsplit = 2)
+
+ad.tennis <- rpart (Jouer ~ Ciel + Temperature + Humidite + Vent, tennis, control = ad.tennis.cnt)
+ad.tennis
+
+plot (ad.tennis, branch=.4, uniform=T, compress=T)
+text (ad.tennis, all=T,use.n=T)
+
+
+#avec 5
+ad.tennis.cnt <- rpart.control (minsplit = 5)
+
+ad.tennis <- rpart (Jouer ~ Ciel + Temperature + Humidite + Vent, tennis, control = ad.tennis.cnt)
+ad.tennis
+
+plot (ad.tennis, branch=.4, uniform=T, compress=T)
+text (ad.tennis, all=T,use.n=T)
+
+#avec 20 erreur
+```
+
+
+## Partie II (tree) :
+
+
+```{r }
+data(iris)
+head(iris)
+
+library(tree)
+arbre1 <- tree(Species ~ Sepal.Width + Petal.Width, data = iris)
+summary(arbre1)
+
+plot(arbre1)
+text(arbre1)
+
+
+plot(iris$Petal.Width,iris$Sepal.Width,pch=19,col=iris$Species)
+partition.tree(arbre1,label="Species",add=TRUE)
+legend(cex = 1,1.75,4.5,legend=unique(iris$Species),col=unique(as.numeric(iris$Species)),pch=19)
+
+```
+
+
+## Partie III (C5.0) :
+
+
+```{r }
+#1. Charger le fichier credit.csv.
+credit <- read.csv("credit.csv")
+
+#2. Afficher la structure des données.
+str(credit)
+
+# 3. Afficher le nombre d’occurrences des intervalles de checking_balance et de savings_balance.
+table(credit$checking_balance)
+table(credit$savings_balance)
+
+# 4. Afficher les statistiques de months_loan_duration.
+summary(credit$months_loan_duration)
+
+#5. Afficher les statistiques de amount.
+summary(credit$amount)
+
+#7. Répartir les données credit.csv en 90% pour l’apprentissage et 10% pour les tests.
+set.seed(123)
+train_sample <- sample(1000, 900)
+
+# verif
+str(train_sample)
+
+credit_train <- credit[train_sample, ]
+credit_test <- credit[-train_sample, ]
+
+# 8. Vérifier les proportions par la commande prop.table.
+prop.table(table(credit_train$default))
+prop.table(table(credit_test$default))
+
+
+# 9. Installer le package C5.0.
+#install.packages("C50")
+library(C50)
+
+# 10. Créer un modèle d’arbre de décision par C5.0
+credit_model <- C5.0(credit_train[-21], factor(ifelse(credit_train$default==1,"No","Yes")))
+
+credit_model
+
+#11. Evaluer le modèle d’apprentissage.
+summary(credit_model)
+
+#12. Installer la bibliothèque gmodels.
+credit_pred <- predict(credit_model, credit_test)
+#install.packages("gmodels")
+library(gmodels)
+
+#13. Utiliser la fonction CrossTable pour évaluer le modèle
+CrossTable(credit_test$default, credit_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('les valeurs actuelles', 'predictions "default"'))
+
+```
+
